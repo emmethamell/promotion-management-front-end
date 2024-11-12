@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function textInput({onChange, value}) {
+function TextInput({ onChange }) {
     const handleChange = (event) => {
         onChange(event.target.value)
     }
@@ -8,7 +8,6 @@ function textInput({onChange, value}) {
         <>
         <input className="text-input"
             type="text"
-            value={value}
             onChange={handleChange}
         />
         </>
@@ -16,4 +15,4 @@ function textInput({onChange, value}) {
 
 }
 
-export default textInput;
+export default TextInput;

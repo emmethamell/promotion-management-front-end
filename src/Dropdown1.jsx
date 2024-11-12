@@ -16,8 +16,6 @@ function Dropdown1 ({ onChange }) {
     };
 
 
-    const options = ["Promo Code", "Coupon"]
-
     return(
         <div className="dropdown">
         <button onClick={toggleDropdown} className="dropdown-button">
