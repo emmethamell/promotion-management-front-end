@@ -5,37 +5,6 @@ import DateSelection from './DateSelection';
 import axios from 'axios';
 
 /*
-PROMO CODE: 
-    @ManyToOne
-    @JoinColumn(name = "campaignId", nullable = false) //PromoCode entity is joined to Campaign entity via a foriegn key, the one in campaign
-    private Campaign campaign;
-
-    private String code;
-    private String discountType;
-    private BigDecimal discountValue;
-    private BigDecimal minimumSpend;
-    private LocalDate expirationDate;
-    private Integer usageLimit;
-    private Integer usageCount;
-
-    "{"campaign":"5","code":"NOVEMBERPROMOTION","startDate":"2024-11-06","endDate":"2025-01-17","usageLimit":"25","usageCount":"1","discountValue":"20","discountType":"PERCENT"}"
-    "{"campaign":"5","code":"NOVEMBERPROMOTION","startDate":"2024-11-06","endDate":"2025-01-17","usageLimit":"25","usageCount":"1","minimumSpend":"156","discountValue":"20","discountType":"PERCENT"}"
-    "{"campaign":5,"code":"NOVEMBERPROMOTION","startDate":"2024-11-06","endDate":"2025-01-17","usageLimit":25,"usageCount":1,"minimumSpend":156,"discountValue":20,"discountType":null}"
-    "{"campaign":5,"code":"NOVEMBERPROMOTION","startDate":"2024-11-06","endDate":"2025-01-17","usageLimit":25,"usageCount":1,"minimumSpend":156,"discountValue":20,"discountType":null}"
-    "{"campaign":5,"code":"NOVEMBERPROMOTION","startDate":"2024-11-06","endDate":"2025-01-17","usageLimit":25,"usageCount":1,"minimumSpend":156,"discountValue":20,"discountType":"PERCENT"}"
-COUPON:
-    @ManyToOne
-    @JoinColumn(name = "campaignId", nullable = false)
-    private Campaign campaign;
-
-    private String code;
-    private BigDecimal discountAmount;
-    private BigDecimal minimumSpend;
-    private LocalDate expirationDate;
-    private Integer usageLimit;
-    private Integer usageCount;
-
-
 BOTH
     campaignId
     code
@@ -49,14 +18,14 @@ PROMO ONLY
 COUPON ONLY
     discountAmount
 
-
-
+Query for the campaign using the campaignId, and then use this campaign to save the promo code
 
 */
 
 function CreatePromotion() {
 
-    const campaign = 5
+    //both
+    const campaignId = 4 //temporary campaign id
     const [promoType, setPromoType] = useState('')
     const [code, setCode] = useState('')
     const [startDate, setStartDate] = useState('')
@@ -99,50 +68,66 @@ function CreatePromotion() {
         setUsageLimit(value)
     }
 
-    const handleCreatePromotion = () => {
-        const commonData = {
-            campaign,
-            code,
-            startDate,
-            endDate,
-            usageLimit: Number(usageLimit),
-            usageCount,
-            minimumSpend
-        };
-
-        if (promoType === 'Promo Code') {
-            const promoCodeData = {
-                ...commonData,
-                discountValue: Number(discountValue),
-                discountType
-            };
-            axios.post('http://localhost:8080/api/promocodes', promoCodeData)
-                .then(response => {
-                    console.log('Promo code created:', response.data);
-                    alert('Promo code created successfully!');
-                })
-                .catch(error => {
-                    console.error('Error creating promo code:', error);
-                    alert('Failed to create promo code.');
-                });
-        } else if (promoType === 'Coupon') {
-            const couponData = {
-                ...commonData,
-                discountAmount: Number(discountAmount)
-            };
-            axios.post('http://localhost:8080/api/coupons', couponData)
-                .then(response => {
-                    console.log('Coupon created:', response.data);
-                    alert('Coupon created successfully!');
-                })
-                .catch(error => {
-                    console.error('Error creating coupon:', error);
-                    alert('Failed to create coupon.');
-                });
-        } else {
-            alert('Please select a valid promotion type.');
+    const handleCreatePromotion = async () => {
+        try {
+            const campaign = await fetchCampaign(campaignId) //fetch the campaign using campaignId
+            const commonData = {
+                campaign,
+                code,
+                startDate,
+                expirationDate: endDate,
+                usageLimit: Number(usageLimit),
+                usageCount,
+                minimumSpend
+            }
+            if (promoType === 'Promo Code') {
+                const promoCodeData = {
+                    ...commonData,
+                    discountValue: Number(discountValue),
+                    discountType
+                };
+                axios.post('http://localhost:8080/api/promocodes', promoCodeData)
+                    .then(response => {
+                        console.log('Promo code created:', response.data);
+                        alert('Promo code created successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error creating promo code:', error);
+                        alert('Failed to create promo code.');
+                    });
+            } else if (promoType === 'Coupon') {
+                const couponData = {
+                    ...commonData,
+                    discountAmount: Number(discountAmount)
+                };
+                axios.post('http://localhost:8080/api/coupons', couponData)
+                    .then(response => {
+                        console.log('Coupon created:', response.data)
+                        alert('Coupon created successfully!')
+                    })
+                    .catch(error => {
+                        console.error('Error creating coupon:', error)
+                        alert('Failed to create coupon.')
+                    })
+            } else {
+                alert('Please select a valid promotion type.')
+            }
+        } catch (error) {
+            console.log('Error fetching the campaign', error)
         }
+
     };
+
+    const fetchCampaign = async (id) => {
+        try {
+            const response = await axios.get(`http://localhost:8080/api/campaigns/${id}`)
+            return response.data
+        } catch (error) {
+            console.error('Error fetching campaign', error)
+            throw error
+        }
+            
+    }
 
 
     return (
